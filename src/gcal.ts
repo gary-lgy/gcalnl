@@ -45,4 +45,17 @@ export default class GCal {
       console.log("No upcoming events found.");
     }
   }
+
+  public async createEvent(event: calendar_v3.Schema$Event) {
+    try {
+      const response = await this.calendar.events.insert({
+        calendarId: "primary",
+        requestBody: event,
+      });
+      console.log("Event created: %s", response.data.htmlLink);
+    } catch (err) {
+      console.log("There was an error contacting the Calendar service: " + err);
+      return;
+    }
+  }
 }
