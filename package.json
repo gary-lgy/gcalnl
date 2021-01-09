@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "chrono-node": "^2.1.10",
+    "date-fns": "^2.16.1",
     "googleapis": "^67.0.0",
     "source-map-support": "^0.5.19"
   },

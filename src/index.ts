@@ -1,6 +1,7 @@
 import fs from "fs";
 import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
+import Cli from "./cli";
 import * as rl from "./readline";
 
 // If modifying these scopes, delete token.json.
@@ -90,9 +91,16 @@ async function main() {
 
   // Authorize a client with credentials, then call the Google Calendar API.
   const { client_secret, client_id, redirect_uris } = credentials.installed;
-  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+  const oAuth2Client = new google.auth.OAuth2(
+    client_id,
+    client_secret,
+    redirect_uris[0]
+  );
   await authorize(oAuth2Client);
   await listEvents(oAuth2Client);
 }
 
 main().catch(console.error);
+
+const cli = new Cli();
+cli.read();
