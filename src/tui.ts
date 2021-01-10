@@ -30,7 +30,10 @@ export default class Tui {
     this.currentParsedEvent = null;
 
     return new Promise<ParsedEvent | null>((resolve) => {
-      // TODO: use https://github.com/chalk/chalk and https://github.com/sindresorhus/ansi-escapes
+      // TODO: improve functionality and/or code readability with
+      // https://github.com/chalk/chalk
+      // https://github.com/sindresorhus/ansi-escapes
+      // https://github.com/cronvel/terminal-kit
 
       process.stdin.on("keypress", (str, info) => {
         if (!info) {
