@@ -11,7 +11,7 @@
     "gcalnl": "./bin/cli"
   },
   "scripts": {
-    "start": "node -r source-map-support/register dist/index.js",
+    "start": "node bin/cli",
     "build": "tsc --build",
     "test": "jest"
   },

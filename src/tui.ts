@@ -30,14 +30,18 @@ export default class Tui {
     this.currentParsedEvent = null;
 
     return new Promise<ParsedEvent | null>((resolve) => {
-      // TODO: consider taking input through readline.question to enable readline keybindings
+      // TODO: use https://github.com/chalk/chalk and https://github.com/sindresorhus/ansi-escapes
 
       process.stdin.on("keypress", (str, info) => {
-        if (info && info.ctrl && info.name == "c") {
+        if (!info) {
+          return;
+        }
+
+        if (info.ctrl && info.name == "c") {
           process.exit(0);
         }
 
-        if (info && info.name === "return") {
+        if (info.name === "return") {
           // Move the cursor to after the output
           for (let i = 0; i < this.linesPrintedLastTime + 1; i++) {
             readline.moveCursor(process.stdin, 0, 1);
@@ -48,6 +52,16 @@ export default class Tui {
           process.stdin.pause();
 
           resolve(this.currentParsedEvent);
+          return;
+        }
+
+        // TODO: handle arrow keys properly
+        if (
+          info.name === "up" ||
+          info.name === "down" ||
+          info.name === "left" ||
+          info.name === "right"
+        ) {
           return;
         }
 
