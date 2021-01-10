@@ -1,10 +1,8 @@
 import { add, formatISO, formatRFC3339 } from "date-fns";
 import { calendar_v3 } from "googleapis";
-import Cli from "./cli";
-import GCal from "./gcal";
-import { ParsedEvent } from "./parser";
+import { ParsedEvent } from "../parser";
 
-const parsedEventToGCalEvent = (
+export const parsedEventToGCalEvent = (
   event: ParsedEvent
 ): calendar_v3.Schema$Event => {
   const eventStart: calendar_v3.Schema$EventDateTime = {};
@@ -36,14 +34,3 @@ const parsedEventToGCalEvent = (
     end: eventEnd,
   };
 };
-
-(async () => {
-  const gCal = await GCal.getInstance();
-  const cli = new Cli();
-  const event = await cli.read();
-  if (event === null) {
-    return;
-  }
-
-  await gCal.createEvent(parsedEventToGCalEvent(event));
-})();

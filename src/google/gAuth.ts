@@ -2,7 +2,7 @@ import fs from "fs";
 import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
 import { dirname } from "path";
-import * as rl from "./readline";
+import * as rl from "../readline";
 
 // Adapted based on example from
 // https://developers.google.com/calendar/quickstart/nodejs
