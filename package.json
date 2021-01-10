@@ -1,16 +1,23 @@
 {
-  "name": "gCalNL",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "gcalnl",
+  "version": "0.0.1",
+  "description": "A TUI to add events to Google Calendar with natural language",
+  "files": [
+    "dist",
+    "bin",
+    "src"
+  ],
+  "bin": {
+    "gcalnl": "./bin/cli"
+  },
   "scripts": {
     "start": "node -r source-map-support/register dist/index.js",
     "build": "tsc --build",
     "test": "jest"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "gary-lgy",
+  "license": "MIT",
   "dependencies": {
     "chrono-node": "^2.1.10",
     "date-fns": "^2.16.1",
