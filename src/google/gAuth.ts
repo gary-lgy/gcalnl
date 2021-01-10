@@ -1,7 +1,8 @@
 import fs from "fs";
 import { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
-import { dirname } from "path";
+import os from "os";
+import path from "path";
 import * as rl from "../readline";
 
 // Adapted based on example from
@@ -12,8 +13,9 @@ const SCOPES = ["https://www.googleapis.com/auth/calendar.events"];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
-const CREDENTIALS_PATH = "~/.gcalnl/credentials.json";
-const TOKEN_PATH = "~/.gcalnl/token.json";
+const homeDir = os.homedir();
+const CREDENTIALS_PATH = path.join(homeDir, ".gcalnl/credentials.json");
+const TOKEN_PATH = path.join(homeDir, ".gcalnl/token.json");
 
 export const getOAuth2Client = async () => {
   // Load client secrets from a local file.
@@ -51,7 +53,7 @@ async function getAccessToken(oAuth2Client: OAuth2Client) {
   const { tokens } = await oAuth2Client.getToken(code);
   oAuth2Client.setCredentials(tokens);
   // Store the token to disk for later program executions
-  const dir = dirname(TOKEN_PATH);
+  const dir = path.dirname(TOKEN_PATH);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
