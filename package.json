@@ -19,6 +19,7 @@
   "author": "gary-lgy",
   "license": "MIT",
   "dependencies": {
+    "ansi-escapes": "^4.3.1",
     "chrono-node": "^2.1.10",
     "date-fns": "^2.16.1",
     "googleapis": "^67.0.0",

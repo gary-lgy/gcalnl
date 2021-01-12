@@ -1,3 +1,4 @@
+import ansiEscapes from "ansi-escapes";
 import readline from "readline";
 import { ParsedEvent, parseEventWithTime } from "../parser";
 import { formatDate, formatTime } from "./TimeFormatters";
@@ -40,111 +41,80 @@ const printParsedEvent = (event: ParsedEvent | null): number => {
   return linesPrinted;
 };
 
-// clear the lines printed below the current line and move the cursor below the input line
-const clearLinesBelow = (linesToClear: number) => {
-  if (linesToClear > 0) {
-    for (let i = 0; i < linesToClear; i++) {
-      readline.moveCursor(process.stdout, 0, 1);
-      readline.clearLine(process.stdout, 0);
-    }
-
-    // go back to the line below the prompt
-    for (let i = 0; i < linesToClear - 1; i++) {
-      readline.moveCursor(process.stdout, 0, -1);
-    }
-
-    // go to start of line
-    readline.cursorTo(process.stdout, 0);
-  } else {
-    // move to the output section
-    process.stdout.write("\n");
-  }
-};
-
-export default class Tui {
-  protected linesPrintedLastTime: number = 0;
-  protected currentInput: string = "";
-  protected currentParsedEvent: ParsedEvent | null = null;
-
-  constructor() {
-    if (!process.stdin.isTTY) {
-      throw new Error("not tty");
-    }
-    readline.emitKeypressEvents(process.stdin);
-    process.stdin.setRawMode(true);
+export const readTuiInput = (): Promise<ParsedEvent | null> => {
+  if (!process.stdin.isTTY) {
+    throw new Error("not tty");
   }
 
-  // TODO: refactor into function
-  readTuiInput(): Promise<ParsedEvent | null> {
-    this.linesPrintedLastTime = 0;
-    this.currentInput = "";
-    this.currentParsedEvent = null;
+  readline.emitKeypressEvents(process.stdin);
+  process.stdin.setRawMode(true);
 
-    return new Promise<ParsedEvent | null>((resolve) => {
-      // TODO: improve functionality and/or code readability with
-      // https://github.com/chalk/chalk
-      // https://github.com/sindresorhus/ansi-escapes
-      // https://github.com/cronvel/terminal-kit
+  let linesPrintedLastTime = 0;
+  let currentInput = "";
+  let currentParsedEvent: ParsedEvent | null = null;
 
-      process.stdin.on("keypress", (str, info) => {
-        if (!info) {
-          return;
-        }
+  return new Promise<ParsedEvent | null>((resolve) => {
+    // TODO: improve functionality and/or code readability with
+    // https://github.com/chalk/chalk
+    // https://github.com/cronvel/terminal-kit
 
-        if (info.ctrl && info.name == "c") {
-          process.exit(0);
-        }
+    process.stdin.on("keypress", (str, info) => {
+      if (!info) {
+        return;
+      }
 
-        if (info.name === "return") {
-          // Move the cursor to after the output
-          for (let i = 0; i < this.linesPrintedLastTime + 1; i++) {
-            readline.moveCursor(process.stdin, 0, 1);
-          }
-          readline.cursorTo(process.stdin, 0);
+      if (info.ctrl && info.name == "c") {
+        process.exit(0);
+      }
 
-          process.stdin.on("keypress", () => {});
-          process.stdin.pause();
+      if (info.name === "return") {
+        // Move the cursor to after the output
+        process.stdout.write(ansiEscapes.cursorDown(linesPrintedLastTime + 1));
+        process.stdout.write(ansiEscapes.cursorTo(0));
 
-          resolve(this.currentParsedEvent);
-          return;
-        }
+        process.stdin.on("keypress", () => {});
+        process.stdin.pause();
 
-        // TODO: handle arrow keys properly
-        if (
-          info.name === "up" ||
-          info.name === "down" ||
-          info.name === "left" ||
-          info.name === "right"
-        ) {
-          return;
-        }
+        resolve(currentParsedEvent);
+        return;
+      }
 
-        // Update the input string
-        if (info && info.name === "backspace") {
-          this.currentInput = this.currentInput.substring(
-            0,
-            this.currentInput.length - 1
-          );
-        } else {
-          this.currentInput += str;
-        }
+      // TODO: handle arrow keys properly
+      if (
+        info.name === "up" ||
+        info.name === "down" ||
+        info.name === "left" ||
+        info.name === "right"
+      ) {
+        return;
+      }
 
-        // Update the parsed event
-        this.currentParsedEvent = parseEventWithTime(this.currentInput);
+      // Update the input string
+      if (info && info.name === "backspace") {
+        currentInput = currentInput.substring(0, currentInput.length - 1);
+      } else {
+        currentInput += str;
+      }
 
-        clearLinesBelow(this.linesPrintedLastTime);
+      // Update the parsed event
+      currentParsedEvent = parseEventWithTime(currentInput);
 
-        this.linesPrintedLastTime = printParsedEvent(this.currentParsedEvent);
+      // move to the details section
+      process.stdout.write("\n");
 
-        // re-print the input on the prompt line
-        for (let i = 0; i < this.linesPrintedLastTime + 1; i++) {
-          readline.moveCursor(process.stdout, 0, -1);
-        }
-        readline.cursorTo(process.stdout, 0);
+      // remove the details printed below
+      process.stdout.write(ansiEscapes.eraseDown);
 
-        process.stdout.write(this.currentInput);
-        readline.clearLine(process.stdout, 1);
-      });
+      // print the new details
+      linesPrintedLastTime = printParsedEvent(currentParsedEvent);
+
+      // move the cursor back to the end of the prompt line
+      process.stdout.write(ansiEscapes.cursorUp(linesPrintedLastTime + 1));
+
+      // update the prompt line with the current input
+      process.stdout.write(ansiEscapes.cursorTo(0));
+      process.stdout.write(currentInput);
+      process.stdout.write(ansiEscapes.eraseEndLine);
     });
-  }
-}
+  });
+};
