@@ -11,7 +11,7 @@ const hasTimeSpecified: (result: chrono.ParsedResult) => boolean = (result) => {
   return result.start.isCertain("hour");
 };
 
-export const parse: (
+export const parseEventWithTime: (
   eventString: string,
   refDate?: Date
 ) => ParsedEvent | null = (eventString, refDate) => {
