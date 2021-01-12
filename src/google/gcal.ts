@@ -1,20 +1,14 @@
+import { OAuth2Client } from "google-auth-library";
 import { calendar_v3, google } from "googleapis";
-import { getOAuth2Client } from "./gAuth";
 
 export default class GCal {
   private calendar: calendar_v3.Calendar;
 
-  private constructor(calendar: calendar_v3.Calendar) {
-    this.calendar = calendar;
-  }
-
-  public static async getInstance() {
-    const oAuth2Client = await getOAuth2Client();
-    const calendar = google.calendar({
+  constructor(oAuth2Client: OAuth2Client) {
+    this.calendar = google.calendar({
       version: "v3",
       auth: oAuth2Client,
     });
-    return new GCal(calendar);
   }
 
   /**

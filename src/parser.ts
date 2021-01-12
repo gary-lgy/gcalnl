@@ -1,6 +1,6 @@
 import * as chrono from "chrono-node";
 
-export interface ParsedEvent {
+export interface ParsedResult {
   title: string;
   startDate: Date;
   endDate?: Date;
@@ -14,7 +14,7 @@ const hasTimeSpecified: (result: chrono.ParsedResult) => boolean = (result) => {
 export const parseEventWithTime: (
   eventString: string,
   refDate?: Date
-) => ParsedEvent | null = (eventString, refDate) => {
+) => ParsedResult | null = (eventString, refDate) => {
   const results = chrono.parse(eventString, refDate);
   // TODO: when will it return multiple results?
   if (results.length < 1) {

@@ -1,9 +1,9 @@
 import { add, formatISO, formatRFC3339 } from "date-fns";
-import { calendar_v3 } from "googleapis";
-import { ParsedEvent } from "../parser";
+import { calendar_v3, tasks_v1 } from "googleapis";
+import { ParsedResult } from "../parser";
 
-export const parsedEventToGCalEvent = (
-  event: ParsedEvent
+export const parsedResultToGCalEvent = (
+  event: ParsedResult
 ): calendar_v3.Schema$Event => {
   const eventStart: calendar_v3.Schema$EventDateTime = {};
   const eventEnd: calendar_v3.Schema$EventDateTime = {};
@@ -32,5 +32,16 @@ export const parsedEventToGCalEvent = (
     summary: event.title,
     start: eventStart,
     end: eventEnd,
+  };
+};
+
+export const parsedResultToGTask = (
+  task: ParsedResult
+): tasks_v1.Schema$Task => {
+  // time is disregarded
+  // https://developers.google.com/tasks/reference/rest/v1/tasks#Task
+  return {
+    title: task.title,
+    due: formatRFC3339(task.startDate),
   };
 };

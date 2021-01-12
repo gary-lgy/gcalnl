@@ -1,47 +1,19 @@
 import ansiEscapes from "ansi-escapes";
 import readline from "readline";
-import { ParsedEvent, parseEventWithTime } from "../parser";
-import { formatDate, formatTime } from "./TimeFormatters";
+import { ParsedResult, parseEventWithTime } from "../parser";
+import { printCalendarObject } from "./DetailsPrinter";
 
-/**
- * Print the event and returns the number of lines printed
- */
-const printParsedEvent = (event: ParsedEvent | null): number => {
-  if (event === null) {
-    process.stdout.write("Need more information...\n");
-    return 1;
-  }
+export const INPUT_TYPE_EVENT = "event";
+export const INPUT_TYPE_TASK = "task";
 
-  let linesPrinted = 0;
+export type CalendarObjectType = "task" | "event";
 
-  process.stdout.write("Event\n");
-  linesPrinted++;
+export interface CalendarObject {
+  type: CalendarObjectType | null;
+  body: ParsedResult | null;
+}
 
-  process.stdout.write(`Title: ${event.title}\n`);
-  linesPrinted++;
-
-  process.stdout.write(`Start date: ${formatDate(event.startDate)}\n`);
-  linesPrinted++;
-
-  if (event.hasTime) {
-    process.stdout.write(`Start time: ${formatTime(event.startDate)}\n`);
-    linesPrinted++;
-  }
-
-  if (event.endDate) {
-    process.stdout.write(`End date: ${formatDate(event.endDate)}\n`);
-    linesPrinted++;
-
-    if (event.hasTime) {
-      process.stdout.write(`End time: ${formatTime(event.endDate)}\n`);
-      linesPrinted++;
-    }
-  }
-
-  return linesPrinted;
-};
-
-export const readTuiInput = (): Promise<ParsedEvent | null> => {
+export const readTuiInput = (): Promise<CalendarObject> => {
   if (!process.stdin.isTTY) {
     throw new Error("not tty");
   }
@@ -51,9 +23,9 @@ export const readTuiInput = (): Promise<ParsedEvent | null> => {
 
   let linesPrintedLastTime = 0;
   let currentInput = "";
-  let currentParsedEvent: ParsedEvent | null = null;
+  let parsedInput: CalendarObject = { type: null, body: null };
 
-  return new Promise<ParsedEvent | null>((resolve) => {
+  return new Promise<CalendarObject>((resolve) => {
     // TODO: improve functionality and/or code readability with
     // https://github.com/chalk/chalk
     // https://github.com/cronvel/terminal-kit
@@ -75,7 +47,7 @@ export const readTuiInput = (): Promise<ParsedEvent | null> => {
         process.stdin.on("keypress", () => {});
         process.stdin.pause();
 
-        resolve(currentParsedEvent);
+        resolve(parsedInput);
         return;
       }
 
@@ -96,8 +68,21 @@ export const readTuiInput = (): Promise<ParsedEvent | null> => {
         currentInput += str;
       }
 
-      // Update the parsed event
-      currentParsedEvent = parseEventWithTime(currentInput);
+      // Update the parsed result
+      if (currentInput.startsWith(INPUT_TYPE_TASK)) {
+        parsedInput.type = INPUT_TYPE_TASK;
+        parsedInput.body = parseEventWithTime(
+          currentInput.substring(INPUT_TYPE_TASK.length)
+        );
+      } else if (currentInput.startsWith(INPUT_TYPE_EVENT)) {
+        parsedInput.type = INPUT_TYPE_EVENT;
+        parsedInput.body = parseEventWithTime(
+          currentInput.substring(INPUT_TYPE_EVENT.length)
+        );
+      } else {
+        parsedInput.type = null;
+        parsedInput.body = null;
+      }
 
       // move to the details section
       process.stdout.write("\n");
@@ -106,7 +91,7 @@ export const readTuiInput = (): Promise<ParsedEvent | null> => {
       process.stdout.write(ansiEscapes.eraseDown);
 
       // print the new details
-      linesPrintedLastTime = printParsedEvent(currentParsedEvent);
+      linesPrintedLastTime = printCalendarObject(parsedInput);
 
       // move the cursor back to the end of the prompt line
       process.stdout.write(ansiEscapes.cursorUp(linesPrintedLastTime + 1));
